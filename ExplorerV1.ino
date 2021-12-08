@@ -30,6 +30,6 @@ void loop()
   Application_FunctionSet.ApplicationFunctionSet_SerialPortDataAnalysis();
 
   /* Motors Control */
-  //Application_FunctionSet.CMD_MotorControl_xxx0();
+  Application_FunctionSet.CMD_MotorControl_xxx0();
 
 }

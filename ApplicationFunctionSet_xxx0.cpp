@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "ApplicationFunctionSet_xxx0.h"
-#include "motors.h"
 #include "servom.h"
 #include "MPU6050_getdata.h"
 #include "rgbled.h"
@@ -19,7 +18,7 @@
 #include "encoders.h"
 
 /* Flags de debug */
-#define _Test_DeviceDriverSet_Voltage 0
+#define _Test_DeviceDriverSet_Voltage 1
 #define _Test_SerialPort 1
 
 ApplicationFunctionSet Application_FunctionSet;
@@ -31,6 +30,24 @@ DeviceDriverSet_Motor AppMotor;
 DeviceDriverSet_Encoder AppEncoder;
 DeviceDriverSet_ULTRASONIC AppULTRASONIC;
 DeviceDriverSet_Servo AppServo;
+
+/*Movement Direction Control List*/
+enum SmartRobotCarMotionControl
+{
+  Forward,       //(1)
+  Backward,      //(2)
+  Left,          //(3)
+  Right,         //(4)
+  LeftForward,   //(5)
+  LeftBackward,  //(6)
+  RightForward,  //(7)
+  RightBackward, //(8)
+  stop_it        //(9)
+};
+
+// Static function
+static void ApplicationFunctionSet_SmartRobotCarLinearMotionControl(SmartRobotCarMotionControl direction, uint8_t directionRecord, uint8_t speed, uint8_t Kp, uint8_t UpperLimit);
+static void ApplicationFunctionSet_SmartRobotCarMotionControl(SmartRobotCarMotionControl direction, uint8_t is_speed);
 
 /**
  * [booleanfunction_xxx description]
@@ -108,106 +125,14 @@ void ApplicationFunctionSet::ApplicationFunctionSet_SensorDataUpdate(void)
 
 }
 
-/* motor speed  0-250 */
-// TO DO
-void ApplicationFunctionSet::CMD_MotorControl_xxx0(void)
-{
-  static boolean MotorControl = false;
-  static uint8_t is_MotorSpeed_A = 0;
-  static uint8_t is_MotorSpeed_B = 0;
-
-  if (Application_SmartRobotCarxxx0.Functional_Mode == CMD_MotorControl)
-  {
-    MotorControl = true;
-    if (0 == CMD_is_MotorDirection)
-    {
-      ApplicationFunctionSet_SmartRobotCarMotionControl(stop_it, 0);
-    }
-    else
-    {
-      switch (CMD_is_MotorSelection) //motor selection
-      {
-      case 0:
-      {
-        is_MotorSpeed_A = CMD_is_MotorSpeed;
-        is_MotorSpeed_B = CMD_is_MotorSpeed;
-        if (1 == CMD_is_MotorDirection)
-        { //turn forward
-          AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_just, /*speed_A*/ is_MotorSpeed_A,
-                                                 /*direction_B*/ direction_just, /*speed_B*/ is_MotorSpeed_B,
-                                                 /*controlED*/ control_enable); //Motor control
-        }
-        else if (2 == CMD_is_MotorDirection)
-        { //turn backward
-          AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_back, /*speed_A*/ is_MotorSpeed_A,
-                                                 /*direction_B*/ direction_back, /*speed_B*/ is_MotorSpeed_B,
-                                                 /*controlED*/ control_enable); //Motor control
-        }
-        else
-        {
-          return;
-        }
-      }
-      break;
-      case 1:
-      {
-        is_MotorSpeed_A = CMD_is_MotorSpeed;
-        if (1 == CMD_is_MotorDirection)
-        { //turn forward
-          AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_just, /*speed_A*/ is_MotorSpeed_A,
-                                                 /*direction_B*/ direction_void, /*speed_B*/ is_MotorSpeed_B,
-                                                 /*controlED*/ control_enable); //Motor control
-        }
-        else if (2 == CMD_is_MotorDirection)
-        { //turn backward
-          AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_back, /*speed_A*/ is_MotorSpeed_A,
-                                                 /*direction_B*/ direction_void, /*speed_B*/ is_MotorSpeed_B,
-                                                 /*controlED*/ control_enable); //Motor control
-        }
-        else
-        {
-          return;
-        }
-      }
-      break;
-      case 2:
-      {
-        is_MotorSpeed_B = CMD_is_MotorSpeed;
-        if (1 == CMD_is_MotorDirection)
-        { //turn forward
-          AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_void, /*speed_A*/ is_MotorSpeed_A,
-                                                 /*direction_B*/ direction_just, /*speed_B*/ is_MotorSpeed_B,
-                                                 /*controlED*/ control_enable); //Motor control
-        }
-        else if (2 == CMD_is_MotorDirection)
-        { //turn backward
-          AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_void, /*speed_A*/ is_MotorSpeed_A,
-                                                 /*direction_B*/ direction_back, /*speed_B*/ is_MotorSpeed_B,
-                                                 /*controlED*/ control_enable); //Motor control
-        }
-        else
-        {
-          return;
-        }
-      }
-      break;
-      default:
-        break;
-      }
-    }
-  }
-  else
-  {
-    if (MotorControl == true)
-    {
-      MotorControl = false;
-      is_MotorSpeed_A = 0;
-      is_MotorSpeed_B = 0;
-    }
-  }
-}
-
-/*Data analysis on serial port*/
+/**
+ * [ApplicationFunctionSet::ApplicationFunctionSet_SerialPortDataAnalysis description]
+ * Data analysis on serial port
+ * Switch speed with the serial port:
+ * 1 = max speed
+ * 2 = 0 speed
+ * 3 = half speed
+ */
 void ApplicationFunctionSet::ApplicationFunctionSet_SerialPortDataAnalysis(void)
 {
   int c = 0;
@@ -258,4 +183,150 @@ void ApplicationFunctionSet::ApplicationFunctionSet_SerialPortDataAnalysis(void)
     }
   }
 
+}
+
+
+/*
+  Movement Direction Control:
+  Input parameters:     1# direction:Forward（1）、Backward（2）、 Left（3）、Right（4）、LeftForward（5）、LeftBackward（6）、RightForward（7）RightBackward（8）
+                        2# speed(0--255)
+*/
+static void ApplicationFunctionSet_SmartRobotCarMotionControl(SmartRobotCarMotionControl direction, uint8_t is_speed)
+{
+  ApplicationFunctionSet Application_FunctionSet;
+  static uint8_t directionRecord = 0;
+  uint8_t Kp, UpperLimit;
+  uint8_t speed = is_speed;
+  //Control mode that requires straight line movement adjustment（Car will has movement offset easily in the below mode，the movement cannot achieve the effect of a relatively straight direction
+  //so it needs to add control adjustment）
+  Kp = 2;
+  UpperLimit = 180;
+
+  switch (direction)
+  {
+  case /* constant-expression */
+      Forward:
+      //When moving forward, enter the direction and position approach control loop processing
+      ApplicationFunctionSet_SmartRobotCarLinearMotionControl(Forward, directionRecord, speed, Kp, UpperLimit);
+      directionRecord = 1;
+    break;
+  case /* constant-expression */ Backward:
+    /* code */
+    //When moving backward, enter the direction and position approach control loop processing
+      ApplicationFunctionSet_SmartRobotCarLinearMotionControl(Backward, directionRecord, speed, Kp, UpperLimit);
+      directionRecord = 2;
+    break;
+  case /* constant-expression */ Left:
+    /* code */
+    directionRecord = 3;
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_forw, /*speed_A*/ speed,
+                                           /*direction_B*/ direction_back, /*speed_B*/ speed, /*controlED*/ control_enable); //Motor control
+    break;
+  case /* constant-expression */ Right:
+    /* code */
+    directionRecord = 4;
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_back, /*speed_A*/ speed,
+                                           /*direction_B*/ direction_forw, /*speed_B*/ speed, /*controlED*/ control_enable); //Motor control
+    break;
+  case /* constant-expression */ LeftForward:
+    /* code */
+    directionRecord = 5;
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_forw, /*speed_A*/ speed,
+                                           /*direction_B*/ direction_forw, /*speed_B*/ speed / 2, /*controlED*/ control_enable); //Motor control
+    break;
+  case /* constant-expression */ LeftBackward:
+    /* code */
+    directionRecord = 6;
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_back, /*speed_A*/ speed,
+                                           /*direction_B*/ direction_back, /*speed_B*/ speed / 2, /*controlED*/ control_enable); //Motor control
+    break;
+  case /* constant-expression */ RightForward:
+    /* code */
+    directionRecord = 7;
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_forw, /*speed_A*/ speed / 2,
+                                           /*direction_B*/ direction_forw, /*speed_B*/ speed, /*controlED*/ control_enable); //Motor control
+    break;
+  case /* constant-expression */ RightBackward:
+    /* code */
+    directionRecord = 8;
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_back, /*speed_A*/ speed / 2,
+                                           /*direction_B*/ direction_back, /*speed_B*/ speed, /*controlED*/ control_enable); //Motor control
+    break;
+  case /* constant-expression */ stop_it:
+    /* code */
+    directionRecord = 9;
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_void, /*speed_A*/ 0,
+                                           /*direction_B*/ direction_void, /*speed_B*/ 0, /*controlED*/ control_enable); //Motor control
+
+    break;
+  default:
+    directionRecord = 10;
+    break;
+  }
+}
+
+/*
+  Straight line movement control：For dual-drive motors, due to frequent motor coefficient deviations and many external interference factors,
+  it is difficult for the car to achieve relative Straight line movement. For this reason, the feedback of the yaw control loop is added.
+  direction：only forward/backward
+  directionRecord：Used to update the direction and position data (Yaw value) when entering the function for the first time.
+  speed：the speed range is 0~255
+  Kp：Position error proportional constant（The feedback of improving location resuming status，will be modified according to different mode），improve damping control.
+  UpperLimit：Maximum output upper limit control
+*/
+static void ApplicationFunctionSet_SmartRobotCarLinearMotionControl(SmartRobotCarMotionControl direction, uint8_t directionRecord, uint8_t speed, uint8_t Kp, uint8_t UpperLimit)
+{
+  static float Yaw; //Yaw
+  static float yaw_So = 0;
+  static uint8_t en = 110;
+  static unsigned long is_time;
+  if (en != directionRecord || millis() - is_time > 10)
+  {
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_void, /*speed_A*/ 0,
+                                           /*direction_B*/ direction_void, /*speed_B*/ 0, /*controlED*/ control_enable); //Motor control
+    AppMPU6050getdata.MPU6050_dveGetEulerAngles(&Yaw);
+    is_time = millis();
+  }
+  //if (en != directionRecord)
+  if (en != directionRecord)
+  {
+    en = directionRecord;
+    yaw_So = Yaw;
+  }
+  //Add proportional constant Kp to increase rebound effect
+  int R = (Yaw - yaw_So) * Kp + speed;
+  if (R > UpperLimit)
+  {
+    R = UpperLimit;
+  }
+  else if (R < 10)
+  {
+    R = 10;
+  }
+  int L = (yaw_So - Yaw) * Kp + speed;
+  if (L > UpperLimit)
+  {
+    L = UpperLimit;
+  }
+  else if (L < 10)
+  {
+    L = 10;
+  }
+  if (direction == Forward) //Forward
+  {
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_forw, /*speed_A*/ R,
+                                           /*direction_B*/ direction_forw, /*speed_B*/ L, /*controlED*/ control_enable);
+  }
+  else if (direction == Backward) //Backward
+  {
+    AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_back, /*speed_A*/ L,
+                                           /*direction_B*/ direction_back, /*speed_B*/ R, /*controlED*/ control_enable);
+  }
+}
+
+
+void ApplicationFunctionSet::CMD_MotorControl_xxx0()
+{
+  AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_back, /*speed_A*/ Right_motors,
+                                         /*direction_B*/ direction_forw, /*speed_B*/ Left_motors, /*controlED*/ control_enable);
 }
