@@ -18,7 +18,7 @@
 #include "encoders.h"
 
 /* Flags de debug */
-#define _Test_DeviceDriverSet_Voltage 1
+#define _Test_DeviceDriverSet_Voltage 0
 #define _Test_SerialPort 1
 
 ApplicationFunctionSet Application_FunctionSet;
@@ -327,6 +327,29 @@ static void ApplicationFunctionSet_SmartRobotCarLinearMotionControl(SmartRobotCa
 
 void ApplicationFunctionSet::CMD_MotorControl_xxx0()
 {
-  AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_back, /*speed_A*/ Right_motors,
+  AppMotor.DeviceDriverSet_Motor_control(/*direction_A*/ direction_forw, /*speed_A*/ Right_motors,
                                          /*direction_B*/ direction_forw, /*speed_B*/ Left_motors, /*controlED*/ control_enable);
+}
+
+//////////////
+/* Encoders */
+//////////////
+void ApplicationFunctionSet::encoders_value() const
+{
+  //Serial.print(digitalRead(encoderA));      // uncomment to see squarewave output
+  // Serial.print('\t');
+  //Serial.print(digitalRead(encoderB)+2);    // +2 shifts output B up so both A and B are visible
+  // Serial.print('\t');
+  //Serial.print(Dir);
+  // Serial.print('\t');
+  Serial.print("Encoder Right: ");
+  Serial.print(AppEncoder.DeviceDriverSet_Encoder_ReadR());
+  Serial.print('\t');
+  Serial.print(AppEncoder.countR);
+  Serial.println();
+  Serial.print("Encoder Left: ");
+  Serial.print(AppEncoder.DeviceDriverSet_Encoder_ReadL());
+  Serial.print('\t');
+  Serial.print(AppEncoder.countL);
+  Serial.println();
 }

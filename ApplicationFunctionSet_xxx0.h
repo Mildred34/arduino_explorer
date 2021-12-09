@@ -19,6 +19,7 @@ public:
   void ApplicationFunctionSet_Init(void);
   void ApplicationFunctionSet_SensorDataUpdate(void);
   void ApplicationFunctionSet_SerialPortDataAnalysis(void);
+  void encoders_value(void) const;
 
 public: /* Motors */
   void CMD_MotorControl_xxx0();

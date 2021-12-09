@@ -32,4 +32,7 @@ void loop()
   /* Motors Control */
   Application_FunctionSet.CMD_MotorControl_xxx0();
 
+  /* Encoders reading */
+  Application_FunctionSet.encoders_value();
+
 }
