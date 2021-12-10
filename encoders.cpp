@@ -13,32 +13,28 @@ int DeviceDriverSet_Encoder::Dir = 0;
 void DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_Init()
 {
 
-  pinMode(PIN_Encoder_R, INPUT);
-  pinMode(PIN_Encoder_L, INPUT);
+  pinMode(PIN_Encoder_R, INPUT_PULLUP);
+  pinMode(PIN_Encoder_L, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(PIN_Encoder_R), DeviceDriverSet_Encoder_pulseR, RISING);
-  attachInterrupt(digitalPinToInterrupt(PIN_Encoder_L), DeviceDriverSet_Encoder_pulseL, RISING);
+  attachInterrupt(digitalPinToInterrupt(PIN_Encoder_R), DeviceDriverSet_Encoder_pulseR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN_Encoder_L), DeviceDriverSet_Encoder_pulseL, FALLING);
 }
 
-float DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_ReadR(void)
+int DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_ReadR(void)
 {
-  float encoderR = digitalRead(PIN_Encoder_R);
+  int encoderR = digitalRead(PIN_Encoder_R);
   return encoderR;
 }
 
-float DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_ReadL(void)
+int DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_ReadL(void)
 {
-  float encoderL = digitalRead(PIN_Encoder_L);
+  int encoderL = digitalRead(PIN_Encoder_L);
   return encoderL;
 }
 
 void DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_checkDirection(){
-  if(digitalRead(PIN_Encoder_L) ==  HIGH){
-    Dir = 1;
-  }
-  else{
-    Dir = -1;
-  }
+/* Le if est utile si on fait l'encodeur en quadrature en utilisant un deuxième aimant */
+  Dir = 1;
 }
 
 void DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_pulseR(){

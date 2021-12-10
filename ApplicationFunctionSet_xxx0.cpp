@@ -72,7 +72,7 @@ void ApplicationFunctionSet::ApplicationFunctionSet_Init(void)
   AppVoltage.DeviceDriverSet_Voltage_Init(); // Pin A3 en input (power module)
   AppMotor.DeviceDriverSet_Motor_Init(); // Init motors pins
   AppEncoder.DeviceDriverSet_Encoder_Init(); // Init encoders pins
-  AppServo.DeviceDriverSet_Servo_Init(90); // Init Servo pins
+  // AppServo.DeviceDriverSet_Servo_Init(90); // Init Servo pins
   AppRBG_LED.DeviceDriverSet_RBGLED_Init(20); // rgb led init
   AppULTRASONIC.DeviceDriverSet_ULTRASONIC_Init(); // ultrasonic sensor init
   res_error = AppMPU6050getdata.MPU6050_dveInit(); // Imu init pin
@@ -336,6 +336,7 @@ void ApplicationFunctionSet::CMD_MotorControl_xxx0()
 //////////////
 void ApplicationFunctionSet::encoders_value() const
 {
+  #if _Test_DeviceDriverSet_Encoders
   //Serial.print(digitalRead(encoderA));      // uncomment to see squarewave output
   // Serial.print('\t');
   //Serial.print(digitalRead(encoderB)+2);    // +2 shifts output B up so both A and B are visible
@@ -344,12 +345,17 @@ void ApplicationFunctionSet::encoders_value() const
   // Serial.print('\t');
   Serial.print("Encoder Right: ");
   Serial.print(AppEncoder.DeviceDriverSet_Encoder_ReadR());
-  Serial.print('\t');
+  Serial.print("\t count:");
   Serial.print(AppEncoder.countR);
+  Serial.print("\t Dir:");
+  Serial.print(AppEncoder.Dir);
   Serial.println();
   Serial.print("Encoder Left: ");
   Serial.print(AppEncoder.DeviceDriverSet_Encoder_ReadL());
-  Serial.print('\t');
+  Serial.print("\t count:");
   Serial.print(AppEncoder.countL);
+  Serial.print("\t Dir:");
+  Serial.print(AppEncoder.Dir);
   Serial.println();
+  #endif
 }
