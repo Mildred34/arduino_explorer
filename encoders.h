@@ -27,7 +27,7 @@ public:
   static void DeviceDriverSet_Encoder_pulseL();
 private:
 //TB6612
-#define PIN_Encoder_R 10
+#define PIN_Encoder_R 11
 #define PIN_Encoder_L A2
 
 public:

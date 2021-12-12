@@ -16,8 +16,8 @@ void DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_Init()
   pinMode(PIN_Encoder_R, INPUT_PULLUP);
   pinMode(PIN_Encoder_L, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(PIN_Encoder_R), DeviceDriverSet_Encoder_pulseR, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_Encoder_L), DeviceDriverSet_Encoder_pulseL, FALLING);
+  attachInterrupt(digitalPinToInterrupt(PIN_Encoder_R), DeviceDriverSet_Encoder_pulseR, RISING);
+  attachInterrupt(digitalPinToInterrupt(PIN_Encoder_L), DeviceDriverSet_Encoder_pulseL, RISING);
 }
 
 int DeviceDriverSet_Encoder::DeviceDriverSet_Encoder_ReadR(void)

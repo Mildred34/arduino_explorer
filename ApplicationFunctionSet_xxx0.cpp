@@ -344,7 +344,7 @@ void ApplicationFunctionSet::encoders_value() const
   // Serial.print('\t');
   //Serial.print(Dir);
   // Serial.print('\t');
-  /*
+  
   Serial.print("Encoder Right: ");
   Serial.print(AppEncoder.DeviceDriverSet_Encoder_ReadR());
   Serial.print("\t count:");
@@ -352,6 +352,7 @@ void ApplicationFunctionSet::encoders_value() const
   Serial.print("\t Dir:");
   Serial.print(AppEncoder.Dir);
   Serial.println();
+  /*
   Serial.print("Encoder Left: ");
   Serial.print(AppEncoder.DeviceDriverSet_Encoder_ReadL());
   Serial.print("\t count:");
