@@ -35,4 +35,5 @@ void loop()
   /* Encoders reading */
   Application_FunctionSet.encoders_value();
 
+
 }

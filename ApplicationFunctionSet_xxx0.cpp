@@ -20,6 +20,7 @@
 /* Flags de debug */
 #define _Test_DeviceDriverSet_Voltage 0
 #define _Test_SerialPort 1
+#define _Test_DeviceDriverSet_Encoders 1
 
 ApplicationFunctionSet Application_FunctionSet;
 
@@ -343,6 +344,7 @@ void ApplicationFunctionSet::encoders_value() const
   // Serial.print('\t');
   //Serial.print(Dir);
   // Serial.print('\t');
+  /*
   Serial.print("Encoder Right: ");
   Serial.print(AppEncoder.DeviceDriverSet_Encoder_ReadR());
   Serial.print("\t count:");
@@ -357,5 +359,6 @@ void ApplicationFunctionSet::encoders_value() const
   Serial.print("\t Dir:");
   Serial.print(AppEncoder.Dir);
   Serial.println();
+  */
   #endif
 }
