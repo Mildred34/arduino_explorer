@@ -19,8 +19,8 @@
 
 /* Flags de debug */
 #define _Test_DeviceDriverSet_Voltage 0
-#define _Test_SerialPort 1
-#define _Test_DeviceDriverSet_Encoders 1
+#define _Test_SerialPort 0
+#define _Test_DeviceDriverSet_Encoders 0
 
 ApplicationFunctionSet Application_FunctionSet;
 
@@ -66,10 +66,17 @@ function_xxx(long x, long s, long e) //f(x)
     return false;
 }
 
+ApplicationFunctionSet::ApplicationFunctionSet(void):button_publisher("button_press", &button_msg)
+{
+
+
+}
+
+
 void ApplicationFunctionSet::ApplicationFunctionSet_Init(void)
 {
   bool res_error = true;
-  Serial.begin(9600); // Sets the data rate in bits per second (baud) for serial data transmission.
+  Serial.begin(57600); // Sets the data rate in bits per second (baud) for serial data transmission.
   AppVoltage.DeviceDriverSet_Voltage_Init(); // Pin A3 en input (power module)
   AppMotor.DeviceDriverSet_Motor_Init(); // Init motors pins
   AppEncoder.DeviceDriverSet_Encoder_Init(); // Init encoders pins
@@ -84,6 +91,9 @@ void ApplicationFunctionSet::ApplicationFunctionSet_Init(void)
   //   /*Clear serial port buffer...*/
   // }
   //
+  /* Init ROS Node */
+  node_handle.initNode();
+  node_handle.advertise(button_publisher);
 }
 
 /**
@@ -344,7 +354,7 @@ void ApplicationFunctionSet::encoders_value() const
   // Serial.print('\t');
   //Serial.print(Dir);
   // Serial.print('\t');
-  
+
   Serial.print("Encoder Right: ");
   Serial.print(AppEncoder.DeviceDriverSet_Encoder_ReadR());
   Serial.print("\t count:");
@@ -362,4 +372,17 @@ void ApplicationFunctionSet::encoders_value() const
   Serial.println();
   */
   #endif
+}
+
+//////////////
+/* ROS */
+//////////////
+/**
+ * [ros_loop description]
+ */
+void ApplicationFunctionSet::ros_loop(void)
+{
+  button_msg.data = "Hello world!";
+  button_publisher.publish( &button_msg );
+  node_handle.spinOnce();
 }

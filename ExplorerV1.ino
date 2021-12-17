@@ -35,5 +35,8 @@ void loop()
   /* Encoders reading */
   Application_FunctionSet.encoders_value();
 
+  /* Send data */
+  Application_FunctionSet.ros_loop();
 
+  delay(1000);
 }

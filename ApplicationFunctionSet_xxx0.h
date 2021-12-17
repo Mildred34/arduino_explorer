@@ -12,26 +12,37 @@
 #include <Arduino.h>
 #include <stdlib.h>
 #include "motors.h"
+#include <ros.h>
+#include <std_msgs/String.h>
+#include <std_msgs/UInt16.h>
 
 class ApplicationFunctionSet
 {
 public:
+  ApplicationFunctionSet(void);
   void ApplicationFunctionSet_Init(void);
   void ApplicationFunctionSet_SensorDataUpdate(void);
   void ApplicationFunctionSet_SerialPortDataAnalysis(void);
+
+
+public: /* Encoders */
   void encoders_value(void) const;
 
 public: /* Motors */
   void CMD_MotorControl_xxx0();
 
-private:
+public: /*ROS*/
+
+  void ros_loop(void);
+
+private: /* Battery */
   /*Sensor Raw Value*/
   volatile float VoltageData_V;        //Battery Voltage Value
 
   /*Sensor Status*/
   boolean VoltageDetectionStatus = false;
 
-public:
+public: /* Battery */
   /*Sensor Threshold Setting*/
   const float VoltageDetection = 7.00;
 
@@ -45,6 +56,11 @@ public: /* Motors */
   int Right_motors = 0;
   int Left_motors = 0;
 
+
+public: /*ROS */
+  ros::NodeHandle node_handle;
+  std_msgs::String button_msg;
+  ros::Publisher button_publisher;
 
 };
 
